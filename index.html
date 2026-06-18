@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Telegram Message Wind Dissolve Replica</title>
-  <script src="bubble-photo-data.js"></script>
+  <script src="assets/bubble-photo-data.js"></script>
   <style>
     :root {
       color-scheme: dark;
@@ -384,7 +384,7 @@
     <header class="topbar">
       <button class="back" aria-label="Back">‹</button>
       <div class="avatar-frame">
-        <img class="avatar" src="avatar.jpg" alt="">
+        <img class="avatar" src="assets/avatar.jpg" alt="">
       </div>
       <div class="profile">
         <div class="name">只因你太美</div>
@@ -398,7 +398,7 @@
       <div class="message-stack">
         <div class="message-row">
           <div class="message photo-message" id="message">
-            <img class="bubble-photo" src="bubble-photo-inline.jpg" alt="">
+            <img class="bubble-photo" src="assets/bubble-photo-inline.jpg" alt="">
             <div class="text">只因你太美</div>
             <div class="meta">
               <span>21:18</span>
@@ -452,7 +452,7 @@
     const flash = document.getElementById("flash");
     const bubblePhotoElement = document.querySelector(".bubble-photo");
     const bubblePhoto = new Image();
-    const bubblePhotoSrc = window.BUBBLE_PHOTO_DATA || "bubble-photo-inline.jpg";
+    const bubblePhotoSrc = window.BUBBLE_PHOTO_DATA || "assets/bubble-photo-inline.jpg";
     bubblePhotoElement.src = bubblePhotoSrc;
     bubblePhoto.src = bubblePhotoSrc;
 

@@ -3,11 +3,11 @@
 前端复刻 TG 风格消息销毁动效：点击删除后，聊天气泡会先模糊，再碎成细密像素粒子，被风吹散。
 
 <p align="center">
-  <img src="./initial.png" alt="ikun-tg-dissolve demo" width="420">
+  <img src="./assets/initial.png" alt="ikun-tg-dissolve demo" width="420">
 </p>
 
 <p align="center">
-  <a href="./delete-reset-loop3.mp4">查看删除 + 重置三连演示 MP4</a>
+  <a href="./assets/delete-reset-loop3.mp4">查看删除 + 重置三连演示 MP4</a>
 </p>
 
 ## 功能
@@ -27,7 +27,7 @@
 ```bash
 git clone git@github.com:kryoncode/ikun-tg-dissolve.git
 cd ikun-tg-dissolve
-open demo.html
+open index.html
 ```
 
 或使用本地静态服务器：
@@ -39,19 +39,19 @@ python3 -m http.server 8080
 访问：
 
 ```text
-http://localhost:8080/demo.html
+http://localhost:8080/
 ```
 
 ## 文件
 
 ```text
-demo.html                 主 Demo
-avatar.jpg                聊天头像
-bubble-photo-inline.jpg   聊天气泡图片
-bubble-photo-data.js      图片 data URL，避免 Canvas 跨源污染
-initial.png               README 示例截图
-delete-reset-loop3.mp4    删除 + 重置三连演示视频
-LICENSE                   MIT 许可证
+index.html                         主 Demo
+assets/avatar.jpg                  聊天头像
+assets/bubble-photo-inline.jpg     聊天气泡图片
+assets/bubble-photo-data.js        图片 data URL，避免 Canvas 跨源污染
+assets/initial.png                 README 示例截图
+assets/delete-reset-loop3.mp4      删除 + 重置三连演示视频
+LICENSE                            MIT 许可证
 ```
 
 仓库只保留一张 PNG 和一个 MP4，避免示例素材重复。
