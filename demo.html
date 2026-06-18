@@ -1,0 +1,887 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Telegram Message Wind Dissolve Replica</title>
+  <script src="bubble-photo-data.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --app-bg: #0e1621;
+      --panel: #17212b;
+      --panel-2: #1f2c38;
+      --blue: #2b94d9;
+      --blue-hi: #38a6e8;
+      --text: #e8eef5;
+      --muted: #8fa4b8;
+      --green: #79d269;
+      --danger: #f15c62;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(63, 89, 111, .16) 0 25%, transparent 25% 50%, rgba(63, 89, 111, .12) 50% 75%, transparent 75%) 0 0 / 42px 42px,
+        var(--app-bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+    }
+
+    .phone {
+      position: relative;
+      width: min(390px, calc(100vw - 24px));
+      height: min(760px, calc(100vh - 24px));
+      min-height: 620px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 30px;
+      background: var(--panel);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, .45);
+      isolation: isolate;
+    }
+
+    .topbar {
+      height: 62px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, .055);
+      background: #17212b;
+    }
+
+    .back {
+      width: 28px;
+      height: 28px;
+      border: 0;
+      padding: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: #74a7ca;
+      font-size: 26px;
+      line-height: 28px;
+    }
+
+    .avatar-frame {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
+      overflow: hidden;
+      border-radius: 50%;
+      background: #d8f6f4;
+      border: 2px solid rgba(255, 255, 255, .86);
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, .28),
+        0 0 0 1px rgba(116, 167, 202, .22);
+    }
+
+    .avatar {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: 50% 42%;
+      transform: scale(1.18);
+    }
+
+    .profile {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .name {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 20px;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 16px;
+    }
+
+    .dots {
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: #74a7ca;
+      font-size: 24px;
+      line-height: 28px;
+    }
+
+    .chat {
+      position: absolute;
+      inset: 62px 0 64px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(90, 130, 162, .14), transparent 150px),
+        radial-gradient(circle at 80% 70%, rgba(43, 148, 217, .10), transparent 180px),
+        #0e1621;
+    }
+
+    .day {
+      width: max-content;
+      margin: 14px auto 0;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(38, 56, 73, .82);
+      color: #b7c7d7;
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .message-stack {
+      position: absolute;
+      right: 12px;
+      bottom: 82px;
+      display: grid;
+      justify-items: end;
+      gap: 8px;
+      width: calc(100% - 24px);
+    }
+
+    .message-row {
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+    }
+
+    .message {
+      position: relative;
+      border-radius: 18px 18px 5px 18px;
+      background: linear-gradient(180deg, var(--blue-hi), var(--blue));
+      color: #fff;
+      box-shadow: 0 1px 1px rgba(0, 0, 0, .16);
+      transform-origin: 100% 100%;
+      transition:
+        opacity .14s ease-out,
+        filter .14s ease-out,
+        transform .14s ease-out;
+      will-change: transform, opacity, filter;
+    }
+
+    .photo-message {
+      width: 286px;
+      min-height: 374px;
+      padding: 8px 8px 22px;
+    }
+
+    .text-message {
+      width: 286px;
+      min-height: 76px;
+      padding: 11px 12px 22px;
+    }
+
+    .message::after {
+      content: "";
+      position: absolute;
+      right: -6px;
+      bottom: 0;
+      width: 14px;
+      height: 16px;
+      background: var(--blue);
+      clip-path: polygon(0 0, 100% 100%, 0 100%);
+    }
+
+    .message.is-pressing {
+      transform: scale(.985);
+      filter: brightness(.98);
+    }
+
+    .message.is-blurring {
+      opacity: .68;
+      transform: scale(1.006);
+      filter: blur(.8px) brightness(1.08);
+    }
+
+    .message.is-hidden {
+      opacity: 0;
+    }
+
+    .text {
+      padding: 8px 4px 0;
+      font-size: 15px;
+      line-height: 20px;
+      letter-spacing: 0;
+    }
+
+    .text-message .text {
+      padding: 0 4px;
+    }
+
+    .bubble-photo {
+      width: 100%;
+      height: 318px;
+      display: block;
+      border-radius: 13px;
+      object-fit: cover;
+      object-position: 50% 48%;
+      background: rgba(255, 255, 255, .92);
+    }
+
+    .meta {
+      position: absolute;
+      right: 10px;
+      bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      color: rgba(255, 255, 255, .7);
+      font-size: 11px;
+      line-height: 14px;
+    }
+
+    .checks {
+      position: relative;
+      width: 15px;
+      height: 10px;
+    }
+
+    .checks::before,
+    .checks::after {
+      content: "";
+      position: absolute;
+      width: 8px;
+      height: 4px;
+      border-left: 1.5px solid rgba(255, 255, 255, .72);
+      border-bottom: 1.5px solid rgba(255, 255, 255, .72);
+      transform: rotate(-45deg);
+    }
+
+    .checks::before {
+      left: 1px;
+      top: 2px;
+    }
+
+    .checks::after {
+      left: 6px;
+      top: 2px;
+    }
+
+    .composer {
+      position: absolute;
+      inset: auto 0 0;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      background: #17212b;
+      border-top: 1px solid rgba(255, 255, 255, .055);
+    }
+
+    .action-button {
+      flex: 1;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 21px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .reset {
+      background: var(--panel-2);
+      color: #b9cadb;
+    }
+
+    .delete {
+      background: var(--danger);
+      box-shadow: 0 8px 20px rgba(241, 92, 98, .28);
+    }
+
+    .delete:disabled {
+      cursor: default;
+      opacity: .42;
+      box-shadow: none;
+    }
+
+    .action-button svg {
+      width: 19px;
+      height: 19px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .particle-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .ghost-flash {
+      position: absolute;
+      z-index: 4;
+      pointer-events: none;
+      border-radius: 18px 18px 5px 18px;
+      background: rgba(255, 255, 255, .2);
+      mix-blend-mode: screen;
+      opacity: 0;
+    }
+
+    .ghost-flash.is-on {
+      animation: flash .22s ease-out;
+    }
+
+    @keyframes flash {
+      0% {
+        opacity: 0;
+        transform: scale(.98);
+      }
+
+      40% {
+        opacity: .34;
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(1.015);
+      }
+    }
+
+    @media (max-width: 420px) {
+      .phone {
+        width: 100vw;
+        height: 100vh;
+        min-height: 560px;
+        border: 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="Telegram message destroy replica">
+    <header class="topbar">
+      <button class="back" aria-label="Back">‹</button>
+      <div class="avatar-frame">
+        <img class="avatar" src="avatar.png" alt="">
+      </div>
+      <div class="profile">
+        <div class="name">只因你太美</div>
+        <div class="status">online</div>
+      </div>
+      <button class="dots" aria-label="More">⋯</button>
+    </header>
+
+    <section class="chat">
+      <div class="day">Today</div>
+      <div class="message-stack">
+        <div class="message-row">
+          <div class="message photo-message" id="message">
+            <img class="bubble-photo" src="bubble-photo-inline.jpg" alt="">
+            <div class="text">只因你太美</div>
+            <div class="meta">
+              <span>21:18</span>
+              <span class="checks" aria-hidden="true"></span>
+            </div>
+          </div>
+        </div>
+        <div class="message-row">
+          <div class="message text-message" id="message-2">
+            <div class="text">鸡冠头背带裤，我是ikun你记住</div>
+            <div class="meta">
+              <span>21:18</span>
+              <span class="checks" aria-hidden="true"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <canvas class="particle-layer" id="particles"></canvas>
+      <div class="ghost-flash" id="flash"></div>
+    </section>
+
+    <footer class="composer">
+      <button class="action-button reset" id="reset" aria-label="Reset messages">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 3-6.7"></path>
+          <path d="M3 4v6h6"></path>
+        </svg>
+        <span>重置</span>
+      </button>
+      <button class="action-button delete" id="destroy" aria-label="Destroy messages">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 6h18"></path>
+          <path d="M8 6V4h8v2"></path>
+          <path d="M6.5 6l1 14h9l1-14"></path>
+          <path d="M10 11v5"></path>
+          <path d="M14 11v5"></path>
+        </svg>
+        <span>删除</span>
+      </button>
+    </footer>
+  </main>
+
+  <script>
+    const phone = document.querySelector(".phone");
+    const chat = document.querySelector(".chat");
+    const messages = Array.from(document.querySelectorAll(".message"));
+    const destroy = document.getElementById("destroy");
+    const reset = document.getElementById("reset");
+    const canvas = document.getElementById("particles");
+    const ctx = canvas.getContext("2d");
+    const flash = document.getElementById("flash");
+    const bubblePhotoElement = document.querySelector(".bubble-photo");
+    const bubblePhoto = new Image();
+    const bubblePhotoSrc = window.BUBBLE_PHOTO_DATA || "bubble-photo-inline.jpg";
+    bubblePhotoElement.src = bubblePhotoSrc;
+    bubblePhoto.src = bubblePhotoSrc;
+
+    const settings = {
+      pixel: .52,
+      duration: 2850,
+      startSpread: 620,
+      wind: 138,
+      lift: -26,
+      gravity: 20,
+      noise: 6,
+      fadePower: 1.55,
+      dustChance: .08,
+      maxParticles: 42000
+    };
+
+    let dpr = 1;
+    let animationId = 0;
+    let particles = [];
+    let running = false;
+
+    function resizeCanvas() {
+      const rect = chat.getBoundingClientRect();
+      dpr = 1;
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function roundedRectPath(context, x, y, width, height, radii) {
+      const r = {
+        tl: radii[0],
+        tr: radii[1],
+        br: radii[2],
+        bl: radii[3]
+      };
+
+      context.beginPath();
+      context.moveTo(x + r.tl, y);
+      context.lineTo(x + width - r.tr, y);
+      context.quadraticCurveTo(x + width, y, x + width, y + r.tr);
+      context.lineTo(x + width, y + height - r.br);
+      context.quadraticCurveTo(x + width, y + height, x + width - r.br, y + height);
+      context.lineTo(x + r.bl, y + height);
+      context.quadraticCurveTo(x, y + height, x, y + height - r.bl);
+      context.lineTo(x, y + r.tl);
+      context.quadraticCurveTo(x, y, x + r.tl, y);
+      context.closePath();
+    }
+
+    function wrapText(context, text, maxWidth) {
+      const chars = Array.from(text);
+      const lines = [];
+      let line = "";
+
+      chars.forEach((char) => {
+        const next = line + char;
+        if (context.measureText(next).width > maxWidth && line) {
+          lines.push(line);
+          line = char;
+        } else {
+          line = next;
+        }
+      });
+
+      if (line) {
+        lines.push(line);
+      }
+
+      return lines;
+    }
+
+    function drawDoubleCheck(context, x, y, color) {
+      context.save();
+      context.strokeStyle = color;
+      context.lineWidth = 1.5;
+      context.lineCap = "round";
+      context.lineJoin = "round";
+
+      for (let n = 0; n < 2; n++) {
+        context.beginPath();
+        context.moveTo(x + n * 5, y + 5);
+        context.lineTo(x + 3 + n * 5, y + 8);
+        context.lineTo(x + 9 + n * 5, y + 1);
+        context.stroke();
+      }
+
+      context.restore();
+    }
+
+    function drawImageCover(context, image, x, y, width, height) {
+      const imageRatio = image.naturalWidth / image.naturalHeight;
+      const targetRatio = width / height;
+      let sx = 0;
+      let sy = 0;
+      let sw = image.naturalWidth;
+      let sh = image.naturalHeight;
+
+      if (imageRatio > targetRatio) {
+        sw = image.naturalHeight * targetRatio;
+        sx = (image.naturalWidth - sw) / 2;
+      } else {
+        sh = image.naturalWidth / targetRatio;
+        sy = (image.naturalHeight - sh) * .48;
+      }
+
+      context.drawImage(image, sx, sy, sw, sh, x, y, width, height);
+    }
+
+    function renderMessageBitmap(messageElement) {
+      const rect = messageElement.getBoundingClientRect();
+      const scale = 2;
+      const width = Math.ceil(rect.width + 10);
+      const height = Math.ceil(rect.height);
+      const offscreen = document.createElement("canvas");
+      const offctx = offscreen.getContext("2d");
+
+      offscreen.width = width * scale;
+      offscreen.height = height * scale;
+      offctx.scale(scale, scale);
+
+      const gradient = offctx.createLinearGradient(0, 0, 0, height);
+      gradient.addColorStop(0, "#38a6e8");
+      gradient.addColorStop(1, "#2b94d9");
+
+      roundedRectPath(offctx, 0, 0, rect.width, rect.height, [18, 18, 5, 18]);
+      offctx.fillStyle = gradient;
+      offctx.fill();
+
+      offctx.beginPath();
+      offctx.moveTo(rect.width - 1, rect.height - 16);
+      offctx.lineTo(rect.width + 8, rect.height);
+      offctx.lineTo(rect.width - 1, rect.height);
+      offctx.closePath();
+      offctx.fillStyle = "#2b94d9";
+      offctx.fill();
+
+      if (messageElement.classList.contains("photo-message")) {
+        const photoX = 8;
+        const photoY = 8;
+        const photoWidth = rect.width - 16;
+        const photoHeight = 318;
+
+        offctx.save();
+        roundedRectPath(offctx, photoX, photoY, photoWidth, photoHeight, [13, 13, 13, 13]);
+        offctx.clip();
+        offctx.fillStyle = "rgba(255,255,255,.92)";
+        offctx.fillRect(photoX, photoY, photoWidth, photoHeight);
+        if (bubblePhoto.complete && bubblePhoto.naturalWidth) {
+          drawImageCover(offctx, bubblePhoto, photoX, photoY, photoWidth, photoHeight);
+        }
+        offctx.restore();
+      }
+
+      offctx.font = "15px -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif";
+      offctx.textBaseline = "top";
+      offctx.fillStyle = "#ffffff";
+
+      const text = messageElement.querySelector(".text").textContent.trim();
+      const textY = messageElement.classList.contains("photo-message") ? 334 : 11;
+      const lines = wrapText(offctx, text, rect.width - 24);
+      lines.forEach((line, index) => {
+        offctx.fillText(line, 12, textY + index * 20);
+      });
+
+      offctx.font = "11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+      offctx.fillStyle = "rgba(255,255,255,.7)";
+      offctx.fillText("21:18", rect.width - 57, rect.height - 17);
+      drawDoubleCheck(offctx, rect.width - 21, rect.height - 16, "rgba(255,255,255,.72)");
+
+      return { canvas: offscreen, width, height, scale };
+    }
+
+    function captureMessageParticles(messageElement) {
+      const chatRect = chat.getBoundingClientRect();
+      const messageRect = messageElement.getBoundingClientRect();
+      const shot = renderMessageBitmap(messageElement);
+      const shotCtx = shot.canvas.getContext("2d");
+      const data = shotCtx.getImageData(0, 0, shot.canvas.width, shot.canvas.height).data;
+      const pixel = settings.pixel;
+      const list = [];
+
+      const step = 1;
+
+      for (let y = 0; y < shot.canvas.height; y += step) {
+        for (let x = 0; x < shot.canvas.width; x += step) {
+          const i = (Math.round(y) * shot.canvas.width + Math.round(x)) * 4;
+          const alpha = data[i + 3];
+
+          if (alpha < 18) {
+            continue;
+          }
+
+          const sx = x / shot.scale;
+          const sy = y / shot.scale;
+          const normalizedX = sx / shot.width;
+          const normalizedY = sy / shot.height;
+          const fromRight = 1 - normalizedX;
+          const edgeDelay = fromRight * settings.startSpread;
+          const rowDelay = Math.sin(normalizedY * Math.PI) * 26;
+          const randomDelay = Math.random() * 260;
+          const size = pixel * (.52 + Math.random() * .58);
+
+          list.push({
+            x: messageRect.left - chatRect.left + sx,
+            y: messageRect.top - chatRect.top + sy,
+            ox: messageRect.left - chatRect.left + sx,
+            oy: messageRect.top - chatRect.top + sy,
+            r: data[i],
+            g: data[i + 1],
+            b: data[i + 2],
+            a: alpha / 255,
+            size,
+            grain: .68 + Math.random() * .32,
+            spin: 0,
+            angle: Math.random() * Math.PI,
+            delay: edgeDelay + rowDelay + randomDelay,
+            wind: settings.wind * (.48 + Math.random() * .68),
+            lift: settings.lift * (.45 + Math.random()),
+            gravity: settings.gravity * (.34 + Math.random() * .58),
+            drift: (Math.random() - .42) * 22,
+            wobble: Math.random() * Math.PI * 2,
+            wobbleRate: .006 + Math.random() * .012,
+            noise: settings.noise * (.25 + Math.random() * .75)
+          });
+
+          if (Math.random() < settings.dustChance) {
+            list.push({
+              x: messageRect.left - chatRect.left + sx + (Math.random() - .5) * .8,
+              y: messageRect.top - chatRect.top + sy + (Math.random() - .5) * .8,
+              ox: messageRect.left - chatRect.left + sx,
+              oy: messageRect.top - chatRect.top + sy,
+              r: data[i],
+              g: data[i + 1],
+              b: data[i + 2],
+              a: alpha / 255 * .42,
+              size: pixel * (.18 + Math.random() * .28),
+              grain: .42 + Math.random() * .46,
+              spin: 0,
+              angle: Math.random() * Math.PI,
+              delay: edgeDelay + rowDelay + randomDelay + Math.random() * 260,
+              wind: settings.wind * (.82 + Math.random() * .9),
+              lift: settings.lift * (.2 + Math.random() * .6),
+              gravity: settings.gravity * (.14 + Math.random() * .38),
+              drift: (Math.random() - .38) * 48,
+              wobble: Math.random() * Math.PI * 2,
+              wobbleRate: .005 + Math.random() * .012,
+              noise: settings.noise * (.5 + Math.random() * .95)
+            });
+          }
+
+        }
+      }
+
+      if (list.length <= settings.maxParticles) {
+        return list;
+      }
+
+      const stride = list.length / settings.maxParticles;
+      const capped = [];
+      for (let i = 0; i < settings.maxParticles; i++) {
+        capped.push(list[Math.floor(i * stride)]);
+      }
+
+      return capped;
+    }
+
+    function captureParticles() {
+      const list = messages.flatMap((messageElement) => captureMessageParticles(messageElement));
+
+      if (list.length <= settings.maxParticles) {
+        return list;
+      }
+
+      const stride = list.length / settings.maxParticles;
+      const capped = [];
+      for (let i = 0; i < settings.maxParticles; i++) {
+        capped.push(list[Math.floor(i * stride)]);
+      }
+
+      return capped;
+    }
+
+    function easeOutCubic(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    function easeInQuad(t) {
+      return t * t;
+    }
+
+    function brighten(value) {
+      return Math.min(255, Math.round(value * 1.18 + 12));
+    }
+
+    function particleColor(p) {
+      return `rgb(${brighten(p.r)} ${brighten(p.g)} ${brighten(p.b)})`;
+    }
+
+    function drawParticles(now, start) {
+      const width = canvas.width / dpr;
+      const height = canvas.height / dpr;
+      ctx.clearRect(0, 0, width, height);
+
+      let alive = 0;
+
+      particles.forEach((p) => {
+        const local = now - start - p.delay;
+
+        if (local < 0) {
+          alive++;
+          const px = Math.round(p.x * dpr) / dpr;
+          const py = Math.round(p.y * dpr) / dpr;
+          const ps = Math.max(.36, p.size);
+          ctx.globalAlpha = p.a * p.grain * .92;
+          ctx.fillStyle = particleColor(p);
+          ctx.fillRect(px, py, ps, ps);
+          return;
+        }
+
+        const t = Math.min(local / settings.duration, 1);
+        const out = easeOutCubic(t);
+        const fall = easeInQuad(t);
+        const shake = Math.sin(local * p.wobbleRate + p.wobble) * p.noise * (1 - t);
+        const x = p.ox + p.wind * out + p.drift * t + shake;
+        const y = p.oy + p.lift * Math.sin(t * Math.PI) + p.gravity * fall + Math.cos(local * .018 + p.wobble) * 5 * (1 - t);
+        const alpha = p.a * p.grain * Math.pow(1 - t, settings.fadePower);
+        const size = Math.max(.08, p.size * (1 - t * .78));
+
+        if (alpha > .01 && t < 1) {
+          alive++;
+          const px = Math.round(x * dpr) / dpr;
+          const py = Math.round(y * dpr) / dpr;
+          const ps = Math.max(.32, size);
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = particleColor(p);
+          ctx.fillRect(px, py, ps, ps);
+        }
+      });
+
+      ctx.globalAlpha = 1;
+
+      if (alive > 0) {
+        animationId = requestAnimationFrame((time) => drawParticles(time, start));
+      } else {
+        running = false;
+        destroy.disabled = false;
+        reset.disabled = false;
+        ctx.clearRect(0, 0, width, height);
+      }
+    }
+
+    function placeFlash() {
+      const chatRect = chat.getBoundingClientRect();
+      const rects = messages.map((messageElement) => messageElement.getBoundingClientRect());
+      const left = Math.min(...rects.map((rect) => rect.left));
+      const top = Math.min(...rects.map((rect) => rect.top));
+      const right = Math.max(...rects.map((rect) => rect.right));
+      const bottom = Math.max(...rects.map((rect) => rect.bottom));
+
+      flash.style.left = `${left - chatRect.left}px`;
+      flash.style.top = `${top - chatRect.top}px`;
+      flash.style.width = `${right - left}px`;
+      flash.style.height = `${bottom - top}px`;
+      flash.classList.remove("is-on");
+      void flash.offsetWidth;
+      flash.classList.add("is-on");
+    }
+
+    async function destroyMessage() {
+      if (running) {
+        return;
+      }
+
+      if (!bubblePhoto.complete) {
+        await bubblePhoto.decode().catch(() => {});
+      }
+
+      running = true;
+      destroy.disabled = true;
+      reset.disabled = true;
+      cancelAnimationFrame(animationId);
+      resizeCanvas();
+      messages.forEach((messageElement) => messageElement.classList.add("is-pressing"));
+
+      window.setTimeout(() => {
+        particles = captureParticles();
+        placeFlash();
+        messages.forEach((messageElement) => {
+          messageElement.classList.remove("is-pressing");
+          messageElement.classList.add("is-blurring");
+        });
+
+        window.setTimeout(() => {
+          messages.forEach((messageElement) => {
+            messageElement.classList.add("is-hidden");
+            messageElement.classList.remove("is-blurring");
+          });
+          drawParticles(performance.now(), performance.now());
+        }, 130);
+      }, 80);
+    }
+
+    function resetMessage() {
+      cancelAnimationFrame(animationId);
+      running = false;
+      particles = [];
+      destroy.disabled = false;
+      reset.disabled = false;
+      messages.forEach((messageElement) => {
+        messageElement.classList.remove("is-hidden", "is-pressing", "is-blurring");
+      });
+      resizeCanvas();
+      ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+    }
+
+    destroy.addEventListener("click", destroyMessage);
+    reset.addEventListener("click", resetMessage);
+    messages.forEach((messageElement) => messageElement.addEventListener("click", destroyMessage));
+    window.addEventListener("resize", resetMessage);
+    window.addEventListener("keydown", (event) => {
+      if (event.key.toLowerCase() === "r") {
+        resetMessage();
+      }
+    });
+
+    resizeCanvas();
+  </script>
+</body>
+</html>
